@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriSmart Pan-India Backend Engine & Operations Center</title>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090e17;
+      --bg-card: rgba(18, 26, 43, 0.85);
+      --bg-card-border: rgba(56, 189, 248, 0.15);
+      --primary: #10b981;
+      --primary-glow: rgba(16, 185, 129, 0.35);
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.3);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --code-bg: #030712;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #132238 0%, var(--bg-dark) 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 28px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-badge {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #10b981, #0284c7);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .tab-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      color: var(--text-muted);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.92rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(56, 189, 248, 0.2));
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title span.badge {
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.9rem;
+    }
+
+    .metric-row:last-child {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      color: var(--text-muted);
+    }
+
+    .metric-val {
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .btn-gps {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+      font-weight: 700;
+    }
+
+    .btn-gps:hover {
+      filter: brightness(1.15);
+    }
+
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .console-log {
+      background: var(--code-bg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      max-height: 280px;
+      overflow-y: auto;
+      color: #a7f3d0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .feed-item {
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 6px;
+      border-left: 3px solid var(--accent);
+      font-size: 0.82rem;
+    }
+
+    .feed-item.winning {
+      border-left-color: var(--primary);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .crop-card {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .crop-card:hover {
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .gps-active-card {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(16, 185, 129, 0.08));
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-group">
+        <div class="logo-badge">🌾</div>
+        <div>
+          <h1>AgriSmart Pan-India Backend Engine</h1>
+          <p style="font-size: 0.84rem; color: var(--text-muted)">
+            Live GPS Current Location • Pan-India Towns & Villages • PostGIS Radius Matching • Real-Time Auction WebSockets
+          </p>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span class="status-pill">
+          <span class="status-dot"></span>
+          <span id="server-status-label">Pan-India & GPS Engine Active (Port 5000)</span>
+        </span>
+        <a href="http://localhost:5173" target="_blank" class="btn btn-secondary">
+          🖥️ Open Frontend (5173)
+        </a>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('dashboard')">📊 System Overview</button>
+      <button class="tab-btn" onclick="switchTab('postgis')">📍 Live GPS & Pan-India Search</button>
+      <button class="tab-btn" onclick="switchTab('auction')">⚡ Live WebSocket Bidding</button>
+      <button class="tab-btn" onclick="switchTab('sync')">🔄 Offline Replay Sync</button>
+      <button class="tab-btn" onclick="switchTab('pathology')">🌿 AI Plant Pathology</button>
+      <button class="tab-btn" onclick="switchTab('explorer')">🔌 API Sandbox</button>
+    </div>
+
+    <!-- TAB 1: SYSTEM OVERVIEW -->
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="grid-3" style="margin-bottom: 24px;">
+        <div class="card">
+          <div class="card-title">
+            <span>📡 Health & Engine</span>
+            <span class="badge" id="badge-db-status">Active</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Server Port</span>
+            <span class="metric-val">5000 (HTTP/WS)</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Location Engine</span>
+            <span class="metric-val">GPS Reverse Geocoding + PostGIS</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Spatial Radius API</span>
+            <span class="metric-val">/api/listings/nearby</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>⚡ Real-Time Bidding</span>
+            <span class="badge">Socket.IO</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Socket Handshake</span>
+            <span class="metric-val">JWT Bearer Auth</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Concurrency Control</span>
+            <span class="metric-val">SELECT ... FOR UPDATE</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Anti-Sniping</span>
+            <span class="metric-val">+2 Mins Auto-Extend</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📱 Offline Replay</span>
+            <span class="badge">Idempotent</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Sync Endpoint</span>
+            <span class="metric-val">/api/sync/batch</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Idempotency Guard</span>
+            <span class="metric-val">sync_outbox (UUID)</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Coverage</span>
+            <span class="metric-val">Rural Offline First</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>🚀 Quick Actions & Demo Login Presets</span>
+          <span class="badge">Instant Auth</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <button class="btn" onclick="loginPreset('farmer')">👨‍🌾 Authenticate as Farmer (Gurpreet - Punjab)</button>
+          <button class="btn btn-accent" onclick="loginPreset('buyer')">💼 Authenticate as Buyer (Rajesh)</button>
+          <button class="btn btn-secondary" onclick="runHealthCheck()">🩺 Run Live Health Check</button>
+        </div>
+        <div id="auth-status-box" class="console-log">Ready. Click a preset above to generate active JWT auth token.</div>
+      </div>
+    </div>
+
+    <!-- TAB 2: LIVE GPS & PAN-INDIA ZONE SEARCH -->
+    <div id="tab-postgis" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>📍 Search Crops by GPS Location or Zone</span>
+            <span class="badge">Live Geolocation</span>
+          </div>
+
+          <!-- Prominent Current Location Action -->
+          <div class="gps-active-card">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem; color: #fbbf24;">🛰️ Device Geolocation</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);" id="gps-status-desc">Click below to detect your live location</div>
+            </div>
+            <button class="btn btn-gps" id="btn-current-loc" onclick="useCurrentLocation()">
+              📍 Use My Current Location
+            </button>
+          </div>
+
+          <label>Or Type Any Indian City, State, District, Mandi, or Village</label>
+          <div style="position: relative;">
+            <input type="text" id="zone-text-input" placeholder="e.g. Ludhiana, Nashik, Baramati, Khanna, Byadagi, Guntur, Sehore, Nagaur, Varanasi..." value="Ludhiana" oninput="debounceZoneSearch(this.value)" />
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">Quick Zone Chips (Click to Search):</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <button class="chip-btn" onclick="selectZonePreset('Ludhiana')">🌾 Ludhiana (Punjab)</button>
+              <button class="chip-btn" onclick="selectZonePreset('Khanna')">🌾 Khanna Mandi</button>
+              <button class="chip-btn" onclick="selectZonePreset('Nashik')">🧅 Nashik (Maharashtra)</button>
+              <button class="chip-btn" onclick="selectZonePreset('Lasalgaon')">🧅 Lasalgaon Onion Mandi</button>
+              <button class="chip-btn" onclick="selectZonePreset('Byadagi')">🌶️ Byadagi (Karnataka)</button>
+              <button class="chip-btn" onclick="selectZonePreset('Guntur')">🌶️ Guntur (Andhra)</button>
+              <button class="chip-btn" onclick="selectZonePreset('Unjha')">🌿 Unjha Jeera Mandi (Gujarat)</button>
+              <button class="chip-btn" onclick="selectZonePreset('Nagaur')">🌱 Nagaur (Rajasthan)</button>
+              <button class="chip-btn" onclick="selectZonePreset('Malihabad')">🥭 Malihabad (UP)</button>
+              <button class="chip-btn" onclick="selectZonePreset('Pampore')">🌸 Pampore Saffron (Kashmir)</button>
+              <button class="chip-btn" onclick="selectZonePreset('All India')">🇮🇳 Pan-India (All Batches)</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label>Latitude</label>
+              <input type="number" id="geo-lat" value="30.900965" step="0.0001" />
+            </div>
+            <div>
+              <label>Longitude</label>
+              <input type="number" id="geo-lng" value="75.857277" step="0.0001" />
+            </div>
+          </div>
+
+          <label>Search Radius: <span id="radius-val" style="color: var(--accent); font-weight: 700;">100</span> km</label>
+          <input type="range" id="geo-radius" min="10" max="2500" value="100" oninput="document.getElementById('radius-val').innerText = this.value; searchNearbyListings();" />
+
+          <button class="btn" onclick="searchNearbyListings()">🔍 Execute PostGIS Radius Search</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>🌾 Nearby Farmer Batches (<span id="crop-results-count">0</span> found)</span>
+            <span class="badge" id="zone-location-tag">Zone: Ludhiana, Punjab</span>
+          </div>
+          <div id="crop-results-list" style="max-height: 480px; overflow-y: auto;">
+            <!-- Crops will render here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: LIVE WEBSOCKET BIDDING -->
+    <div id="tab-auction" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>⚡ Place Real-Time Bid</span>
+            <span class="badge" id="socket-conn-badge">Connecting...</span>
+          </div>
+
+          <label>Target Auction Lot</label>
+          <select id="auction-select" onchange="joinAuctionRoom()">
+            <option value="a0000000-0000-0000-0000-000000000001">Basmati Rice (Pusa 1121) - Ludhiana, Punjab (Base: ₹42.5/kg)</option>
+            <option value="a0000000-0000-0000-0000-000000000003">Nashik Red Onions (Garwa) - Lasalgaon, Maharashtra (Base: ₹18.0/kg)</option>
+            <option value="a0000000-0000-0000-0000-000000000005">Byadagi Red Chilli (Kaddi) - Haveri, Karnataka (Base: ₹180.0/kg)</option>
+            <option value="a0000000-0000-0000-0000-000000000007">Unjha Organic Cumin (Jeera) - Mehsana, Gujarat (Base: ₹260.0/kg)</option>
+            <option value="a0000000-0000-0000-0000-000000000010">Kashmiri Mongra Saffron - Pampore, Kashmir (Base: ₹185,000/kg)</option>
+          </select>
+
+          <label>Your Bid Amount (₹ / kg)</label>
+          <input type="number" id="bid-amount-input" value="49.50" step="0.50" />
+
+          <div style="display: flex; gap: 10px;">
+            <button class="btn" onclick="joinAuctionRoom()">🚪 Join Auction Room</button>
+            <button class="btn btn-accent" onclick="placeLiveBid()">⚡ Submit Live Bid (DB Row-Lock)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📡 Live Auction Broadcast Feed</span>
+            <span class="badge" id="auction-room-label">Room: Not Connected</span>
+          </div>
+          <div id="auction-feed" class="console-log" style="height: 280px;">
+[WebSocket Room Activity will appear here live in real-time]
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: OFFLINE REPLAY SYNC -->
+    <div id="tab-sync" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>🔄 Replay Queued Rural Mutations</span>
+            <span class="badge">Idempotency Guard</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Simulates rural devices across Indian villages coming back online and syncing queued IndexedDB actions via <code>/api/sync/batch</code>.
+          </p>
+
+          <label>Mutation Type to Simulate</label>
+          <select id="sync-mutation-type">
+            <option value="CREATE_LISTING">CREATE_LISTING (Offline Crop Post)</option>
+            <option value="RECORD_DIAGNOSTIC">RECORD_DIAGNOSTIC (Leaf Pathology Scan)</option>
+            <option value="OFFLINE_BID">OFFLINE_BID (Offline Auction Bid)</option>
+          </select>
+
+          <label>Client Mutation UUID (Idempotency Key)</label>
+          <input type="text" id="sync-mutation-uuid" readonly />
+
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn" onclick="sendOfflineSync(false)">🚀 Submit Sync Batch</button>
+            <button class="btn btn-secondary" onclick="sendOfflineSync(true)">🛡️ Test Duplicate (Idempotent)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📋 Sync Reconciliation Log</span>
+            <span class="badge">Transaction Output</span>
+          </div>
+          <div id="sync-console" class="console-log" style="height: 280px;">
+Click "Submit Sync Batch" to replay mutations through the transactional reconciliation engine.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: AI PLANT PATHOLOGY -->
+    <div id="tab-pathology" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>🌿 Log AI Pathology Scan</span>
+            <span class="badge">Cloud / Local Storage</span>
+          </div>
+
+          <label>Crop Name</label>
+          <input type="text" id="scan-crop" value="Wheat (Triticum aestivum)" />
+
+          <label>Detected Disease / Condition</label>
+          <input type="text" id="scan-condition" value="Yellow Rust (Puccinia striiformis)" />
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label>AI Confidence (%)</label>
+              <input type="number" id="scan-confidence" value="95.4" step="0.1" />
+            </div>
+            <div>
+              <label>Severity</label>
+              <select id="scan-severity">
+                <option value="Low">Low</option>
+                <option value="Moderate" selected>Moderate</option>
+                <option value="Severe">Severe (Urgent Treatment)</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn" onclick="submitDiagnosticScan()">📤 Log Scan to Backend</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📜 Recent Pathology Scans</span>
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="loadDiagnosticHistory()">Refresh</button>
+          </div>
+          <div id="pathology-history-list" class="console-log" style="height: 280px;">
+Loading scan history...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: API SANDBOX -->
+    <div id="tab-explorer" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>🔌 Direct HTTP API Explorer</span>
+          <span class="badge">Live Test Endpoints</span>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+          <select id="api-method" style="width: 140px;">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+          </select>
+          <input type="text" id="api-url" value="/api/geo/reverse?lat=28.6139&lng=77.2090" />
+          <button class="btn" style="width: 140px;" onclick="executeCustomApi()">Send Request</button>
+        </div>
+        <label>Request Body (JSON - For POST requests)</label>
+        <textarea id="api-body" rows="3" placeholder="{}"></textarea>
+        <label>Response</label>
+        <div id="api-response-output" class="console-log" style="height: 200px;">
+Click "Send Request" to test any endpoint.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentToken = null;
+    let currentUser = null;
+    let socket = null;
+    let currentListingId = 'a0000000-0000-0000-0000-000000000001';
+    let searchDebounceTimer = null;
+    let isUsingGps = false;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (targetBtn) targetBtn.classList.add('active');
+      
+      const targetContent = document.getElementById('tab-' + tabId);
+      if (targetContent) targetContent.classList.add('active');
+
+      if (tabId === 'postgis') searchNearbyListings();
+      if (tabId === 'pathology') loadDiagnosticHistory();
+    }
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    document.getElementById('sync-mutation-uuid').value = generateUUID();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loginPreset('buyer');
+      searchNearbyListings();
+      runHealthCheck();
+    });
+
+    /**
+     * Use HTML5 Geolocation API to fetch user's live coordinates and reverse geocode
+     */
+    function useCurrentLocation() {
+      const btn = document.getElementById('btn-current-loc');
+      const desc = document.getElementById('gps-status-desc');
+
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+      }
+
+      btn.innerText = '🛰️ Acquiring GPS Lock...';
+      desc.innerText = 'Requesting GPS coordinates from device...';
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const accuracy = Math.round(pos.coords.accuracy || 10);
+
+          document.getElementById('geo-lat').value = lat.toFixed(6);
+          document.getElementById('geo-lng').value = lng.toFixed(6);
+          isUsingGps = true;
+
+          // Call reverse geocoding API
+          try {
+            const revRes = await fetch(`/api/geo/reverse?lat=${lat}&lng=${lng}`);
+            const revData = await revRes.json();
+            
+            if (revData.success && revData.data) {
+              const loc = revData.data;
+              document.getElementById('zone-text-input').value = loc.name || 'Current Location';
+              desc.innerHTML = `📍 <strong style="color: #34d399;">${loc.formatted_address}</strong> (Accuracy: ±${accuracy}m)`;
+              btn.innerText = '✅ Location Detected';
+            } else {
+              document.getElementById('zone-text-input').value = 'Current Location';
+              desc.innerText = `GPS Lock: ${lat.toFixed(4)}, ${lng.toFixed(4)} (±${accuracy}m)`;
+              btn.innerText = '✅ Location Detected';
+            }
+          } catch (e) {
+            document.getElementById('zone-text-input').value = 'Current Location';
+            desc.innerText = `GPS Lock: ${lat.toFixed(4)}, ${lng.toFixed(4)} (±${accuracy}m)`;
+            btn.innerText = '✅ Location Detected';
+          }
+
+          // Search nearby crops from this exact live position
+          searchNearbyListings(true);
+        },
+        (err) => {
+          console.warn('[Geolocation Error]:', err);
+          btn.innerText = '📍 Use My Current Location';
+          desc.innerHTML = `<span style="color: #ef4444;">GPS Permission Denied or Timeout. Try selecting a zone chip below.</span>`;
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+      );
+    }
+
+    async function loginPreset(role) {
+      const phone = role === 'farmer' ? '9876543210' : '9876543211';
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, password: 'password123' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentToken = data.token;
+          currentUser = data.user;
+          document.getElementById('auth-status-box').innerHTML = 
+            `✅ Authenticated as: ${data.user.name} (${data.user.role.toUpperCase()})\n` +
+            `🔑 Token: ${data.token.slice(0, 40)}...\n` +
+            `📍 Location: ${data.user.address_text || 'GPS Set'}`;
+          
+          initSocket(data.token);
+        }
+      } catch (err) {
+        document.getElementById('auth-status-box').innerText = 'Auth Error: ' + err.message;
+      }
+    }
+
+    function initSocket(token) {
+      if (socket) socket.disconnect();
+
+      socket = io(window.location.origin, {
+        auth: { token },
+        transports: ['websocket', 'polling']
+      });
+
+      socket.on('connect', () => {
+        document.getElementById('socket-conn-badge').innerText = 'Connected: ' + socket.id.slice(0, 8);
+        document.getElementById('socket-conn-badge').style.borderColor = '#10b981';
+        document.getElementById('socket-conn-badge').style.color = '#34d399';
+        joinAuctionRoom();
+      });
+
+      socket.on('bid_updated', (data) => {
+        appendAuctionFeed(`💰 NEW HIGHEST BID: ₹${data.newHighestBid}/kg by ${data.buyerName} | Total: ₹${data.totalLotValue.toLocaleString('en-IN')}`, true);
+      });
+
+      socket.on('auction_extended', (data) => {
+        appendAuctionFeed(`⏳ ANTI-SNIPING TRIGGERED: Auction extended to ${new Date(data.newExpiresAt).toLocaleTimeString()}`, false);
+      });
+
+      socket.on('bid_error', (data) => {
+        appendAuctionFeed(`❌ Bid Rejected: ${data.message}`, false);
+      });
+    }
+
+    function joinAuctionRoom() {
+      const listingId = document.getElementById('auction-select').value;
+      currentListingId = listingId;
+      document.getElementById('auction-room-label').innerText = `Room: auction_${listingId.slice(0, 8)}...`;
+      
+      socket.emit('join_auction', { listingId }, (state) => {
+        if (state && state.success) {
+          appendAuctionFeed(`📢 Joined room for "${state.cropName}". Current Top Bid: ₹${state.currentHighestBid}/kg. Base: ₹${state.basePricePerKg}/kg.`);
+          document.getElementById('bid-amount-input').value = (state.currentHighestBid + 1.0).toFixed(2);
+        }
+      });
+    }
+
+    function placeLiveBid() {
+      const listingId = document.getElementById('auction-select').value;
+      const bidAmount = parseFloat(document.getElementById('bid-amount-input').value);
+      if (!socket || !socket.connected) {
+        alert('Socket not connected yet.');
+        return;
+      }
+
+      socket.emit('place_bid', { listingId, bidAmountPerKg: bidAmount }, (res) => {
+        if (res && !res.success) {
+          appendAuctionFeed(`⚠️ ${res.message}`);
+        }
+      });
+    }
+
+    function appendAuctionFeed(msg, isWinning = false) {
+      const feed = document.getElementById('auction-feed');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'feed-item ' + (isWinning ? 'winning' : '');
+      div.innerText = `[${time}] ${msg}`;
+      feed.prepend(div);
+    }
+
+    function debounceZoneSearch(val) {
+      isUsingGps = false;
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        searchNearbyListings();
+      }, 350);
+    }
+
+    function selectZonePreset(zoneName) {
+      isUsingGps = false;
+      document.getElementById('zone-text-input').value = zoneName;
+      document.getElementById('gps-status-desc').innerText = `Zone selected: ${zoneName}`;
+      document.getElementById('btn-current-loc').innerText = '📍 Use My Current Location';
+      searchNearbyListings();
+    }
+
+    async function searchNearbyListings(forceRawCoords = false) {
+      const zoneQuery = document.getElementById('zone-text-input').value.trim();
+      let lat = document.getElementById('geo-lat').value;
+      let lng = document.getElementById('geo-lng').value;
+      const radius = document.getElementById('geo-radius').value;
+
+      try {
+        let url = `/api/listings/nearby?radius_km=${radius}`;
+        if ((forceRawCoords || isUsingGps || !zoneQuery || zoneQuery.toLowerCase() === 'current location') && lat && lng) {
+          url += `&lat=${lat}&lng=${lng}`;
+        } else if (zoneQuery) {
+          url += `&zone=${encodeURIComponent(zoneQuery)}`;
+        } else {
+          url += `&lat=${lat}&lng=${lng}`;
+        }
+
+        const res = await fetch(url);
+        const result = await res.json();
+        
+        document.getElementById('crop-results-count').innerText = result.count || 0;
+        
+        if (result.search_zone) {
+          const zoneDesc = result.search_zone.formatted_address || result.search_zone.name || `${result.search_zone.lat}, ${result.search_zone.lng}`;
+          document.getElementById('zone-location-tag').innerText = `Zone: ${zoneDesc}`;
+          if (result.search_zone.lat) document.getElementById('geo-lat').value = result.search_zone.lat;
+          if (result.search_zone.lng) document.getElementById('geo-lng').value = result.search_zone.lng;
+        }
+
+        const container = document.getElementById('crop-results-list');
+        container.innerHTML = '';
+
+        if (!result.data || result.data.length === 0) {
+          container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; padding: 14px;">No farmer batches found within ' + radius + ' km of this location. Try expanding the radius slider or choosing Pan-India.</p>';
+          return;
+        }
+
+        result.data.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'crop-card';
+          div.innerHTML = `
+            <div>
+              <div style="font-weight: 700; font-size: 1.05rem; color: #fff;">${item.crop_name}</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted);">${item.variety || 'Standard'} • Mandi/Village: ${item.village || item.district || item.state || 'Local Mandi'}</div>
+              <div style="font-size: 0.82rem; color: var(--accent); margin-top: 4px;">📍 ${item.distance_km} km from you • ${item.quantity_kg.toLocaleString('en-IN')} kg lot • Farmer: ${item.farmer_name}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Current Top Bid</div>
+              <div style="font-size: 1.3rem; font-weight: 800; color: #34d399; font-family: monospace;">₹${item.current_highest_bid}/kg</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Base: ₹${item.base_price_per_kg}/kg</div>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function sendOfflineSync(isDuplicateTest) {
+      if (!currentToken) await loginPreset('farmer');
+      const mutationId = document.getElementById('sync-mutation-uuid').value;
+      const type = document.getElementById('sync-mutation-type').value;
+
+      let payload = {};
+      if (type === 'CREATE_LISTING') {
+        payload = {
+          crop_name: 'Organic Mustard Oil Seeds',
+          variety: 'Pusa Bold',
+          quantity_kg: 2400,
+          base_price_per_kg: 52.0,
+          expires_at: new Date(Date.now() + 86400000).toISOString(),
+          lat: 30.9009,
+          lng: 75.8572,
+          zone: 'Khanna Mandi, Punjab'
+        };
+      } else if (type === 'RECORD_DIAGNOSTIC') {
+        payload = {
+          crop_name: 'Rice Paddy',
+          detected_condition: 'Bacterial Leaf Blight',
+          confidence_score: 91.5,
+          severity: 'Moderate',
+          remedies_applied: ['Copper Oxychloride spray', 'Water drainage']
+        };
+      } else if (type === 'OFFLINE_BID') {
+        payload = {
+          listingId: currentListingId,
+          bidAmountPerKg: 50.0
+        };
+      }
+
+      const body = {
+        mutations: [{
+          clientMutationId: mutationId,
+          type,
+          payload,
+          timestamp: Date.now()
+        }]
+      };
+
+      try {
+        const res = await fetch('/api/sync/batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + currentToken
+          },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        
+        const consoleEl = document.getElementById('sync-console');
+        consoleEl.innerHTML = `[Reconciliation Engine Response]\n${JSON.stringify(data, null, 2)}`;
+
+        if (!isDuplicateTest) {
+          document.getElementById('sync-mutation-uuid').value = generateUUID();
+        }
+      } catch (err) {
+        document.getElementById('sync-console').innerText = 'Sync Error: ' + err.message;
+      }
+    }
+
+    async function submitDiagnosticScan() {
+      if (!currentToken) await loginPreset('farmer');
+
+      const crop_name = document.getElementById('scan-crop').value;
+      const detected_condition = document.getElementById('scan-condition').value;
+      const confidence_score = parseFloat(document.getElementById('scan-confidence').value);
+      const severity = document.getElementById('scan-severity').value;
+
+      const body = {
+        crop_name,
+        detected_condition,
+        confidence_score,
+        severity,
+        remedies_applied: ['Apply fungicide within 48 hours', 'Maintain nitrogen balance']
+      };
+
+      try {
+        const res = await fetch('/api/diagnostics/log', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + currentToken
+          },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        alert('Diagnostic Scan Logged Successfully!');
+        loadDiagnosticHistory();
+      } catch (err) {
+        alert('Error logging scan: ' + err.message);
+      }
+    }
+
+    async function loadDiagnosticHistory() {
+      if (!currentToken) await loginPreset('farmer');
+      try {
+        const res = await fetch('/api/diagnostics/history', {
+          headers: { 'Authorization': 'Bearer ' + currentToken }
+        });
+        const data = await res.json();
+        document.getElementById('pathology-history-list').innerText = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('pathology-history-list').innerText = 'History Error: ' + err.message;
+      }
+    }
+
+    async function runHealthCheck() {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        if (data.postgis_version) {
+          document.getElementById('val-postgis-ver').innerText = data.postgis_version;
+        }
+      } catch (e) {}
+    }
+
+    async function executeCustomApi() {
+      const method = document.getElementById('api-method').value;
+      const url = document.getElementById('api-url').value;
+      const bodyText = document.getElementById('api-body').value.trim();
+
+      const options = {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(currentToken && { 'Authorization': 'Bearer ' + currentToken })
+        }
+      };
+
+      if (method === 'POST' && bodyText) {
+        try {
+          options.body = JSON.stringify(JSON.parse(bodyText));
+        } catch (e) {
+          alert('Invalid JSON body');
+          return;
+        }
+      }
+
+      try {
+        const res = await fetch(url, options);
+        const data = await res.json();
+        document.getElementById('api-response-output').innerText = `HTTP ${res.status} ${res.statusText}\n` + JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('api-response-output').innerText = 'Request Failed: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
